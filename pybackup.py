@@ -35,7 +35,7 @@ def askDestination():
 
     # validation
     p = Path(location)
-    if not p.exists() or not p.is_dir():
+    if not p.exists() or not p.is_dir() or location == '':
         return bm.destination
 
     bm.set_destination(location)

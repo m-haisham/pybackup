@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 from typing import List
 from shutil import copy2, rmtree
@@ -116,10 +117,20 @@ class BackupManager:
         for location in locations:
             p = Path(location)
             if not p.exists() or not p.is_dir():
-                return setup(f'Validation failed. {location}', disable_button=False)
+                return setup(f'Validation error. {location}', disable_button=False)
 
         if not destination.exists() or not destination.is_dir():
-            return setup(f'Validation failed. {str(destination)}', disable_button=False)
+            return setup(f'Validation error. {str(destination)}', disable_button=False)
+
+        total = 0
+        current = 0
+
+        # calculate total size
+        for location in locations:
+            loc = Path(location)
+            for path in loc.glob('**/*'):
+                if path.is_file():
+                    total += path.stat().st_size
 
         # compare and backup
         for location in locations:
@@ -131,7 +142,11 @@ class BackupManager:
                 if not path.is_file():
                     continue
 
-                # print(path.name)
+                # total percentile size transfer
+                current += path.stat().st_size
+                per = math.floor((current / total) * 100)
+                print(per)
+                eel.set_progress(1 + per)
 
                 # create new path for the backup file
                 backedloc = str(path)[len(parentloc):]
@@ -163,7 +178,7 @@ class BackupManager:
                 # using copy2 to preserve metadata
                 copy2(str(path), str(backedpath))
 
-        setup('Done.', 100, False)
+        setup('Backup successful.', 100, False)
 
     def save(self):
         self.memory.put(LOCATIONS_KEY, self.locations)
