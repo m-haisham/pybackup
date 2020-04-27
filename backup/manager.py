@@ -4,6 +4,8 @@ from typing import List
 from shutil import copy2, rmtree
 import os
 
+from tkinter import messagebox
+
 import eel
 
 from .json import JsonMemory
@@ -11,6 +13,7 @@ from .json import JsonMemory
 LOCATIONS_KEY = 'LOC'
 DESTINATION_KEY = 'DES'
 OVERWRITE_KEY = 'OVR'
+
 
 class BackupManager:
     SAVE_PATH = '.data'
@@ -61,7 +64,6 @@ class BackupManager:
             # if location already exists, cancel operation
             return False
 
-
     def remove_location(self, path):
         """
         removes :param path: from current src locations
@@ -95,16 +97,32 @@ class BackupManager:
 
         self.save()
 
-    async def backup(self):
+    async def backup(self, verbose=False):
 
-        def setup(text: str, progress: int=None, disable_button:bool=None):
-            eel.set_status_text(text)
+        def setup(text: str = None, progress: int = None, disable_button: bool = None):
+            """
+            eel operation setter
+
+            :param text: status text
+            :param progress: progress
+            :param disable_button: disable backup button
+            """
+
+            if not verbose:
+                return
+
+            if text is not None:
+                eel.set_status_text(text)
 
             if progress is not None:
                 eel.set_progress(progress)
 
             if disable_button is not None:
                 eel.backup_disabled(disable_button)
+
+        def error(title: str, text: str):
+            setup(f'{title}. {text}', disable_button=False)
+            self.showerror(title, text)
 
         setup('Validating paths ...', 1, True)
 
@@ -117,13 +135,25 @@ class BackupManager:
         for location in locations:
             p = Path(location)
             if not p.exists() or not p.is_dir():
-                return setup(f'Validation error. {location}', disable_button=False)
+                return error('Validation error', location)
 
-        if not destination.exists() or not destination.is_dir():
-            return setup(f'Validation error. {str(destination)}', disable_button=False)
+        if not destination.exists():
+
+            # check if drive exists
+            if not Path(destination.parts[0]).exists():
+                return error('Validation error', f'Drive "{destination.parts[0]}" not found.')
+
+            # destination creation prompt
+            if self.askyesno('Destination', f'{str(destination)} does not exist. would you like to create it?'):
+                destination.mkdir(parents=True, exist_ok=True)
+
+        if not destination.is_dir():
+            return error('Validation error', str(destination))
 
         total = 0
         current = 0
+
+        setup(text='Calculating total size ...')
 
         # calculate total size
         for location in locations:
@@ -145,15 +175,14 @@ class BackupManager:
                 # total percentile size transfer
                 current += path.stat().st_size
                 per = math.floor((current / total) * 100)
-                print(per)
-                eel.set_progress(1 + per)
+                setup(progress=1 + per)
 
                 # create new path for the backup file
                 backedloc = str(path)[len(parentloc):]
                 backedpath = Path(str(destination) + backedloc)
 
                 # change status indicator
-                eel.set_status_text(str(path))
+                setup(text=str(path))
 
                 # create directory
                 backedpath.parent.mkdir(exist_ok=True, parents=True)
@@ -175,15 +204,23 @@ class BackupManager:
                         else:
                             continue
 
-                # using copy2 to preserve metadata
+                # using shutil.copy2 to preserve metadata
                 copy2(str(path), str(backedpath))
 
         setup('Backup successful.', 100, False)
 
+    def askyesno(self, title, text):
+        return messagebox.askyesno(f'PyBackup: {title}', text)
+
+    def showerror(self, title, text):
+        return messagebox.showerror(f'PyBackup: {title}', text)
+
     def save(self):
-        self.memory.put(LOCATIONS_KEY, self.locations)
-        self.memory.put(DESTINATION_KEY, self.destination)
-        self.memory.put(OVERWRITE_KEY, self.overwrite)
+        self.memory.putall({
+            LOCATIONS_KEY: self.locations,
+            DESTINATION_KEY: self.destination,
+            OVERWRITE_KEY: self.overwrite
+        })
 
         self.memory.save()
 

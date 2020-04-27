@@ -20,10 +20,22 @@
       <div class="d-flex flex-row">
         <ul id="backups" class="list-group flex-fill"></ul>
         <div class="d-flex flex-column">
-          <button id="add-backup" type="button" class="btn my-1 ml-2">
+          <button
+            id="add-backup"
+            type="button"
+            class="btn my-1 ml-2"
+            data-toggle="tooltip"
+            title="Add new source"
+          >
             <i class="fas fa-plus"></i>
           </button>
-          <button id="remove-backup" type="button" class="btn my-1 ml-2">
+          <button
+            id="remove-backup"
+            type="button"
+            class="btn my-1 ml-2"
+            data-toggle="tooltip"
+            title="Delete selected sources"
+          >
             <i class="fas fa-trash"></i>
           </button>
         </div>
@@ -38,9 +50,16 @@
             class="form-control"
             placeholder="Destination"
             aria-label="Destination"
+            disabled
           />
           <div class="input-group-append">
-            <button type="button" id="des-button" class="btn">
+            <button
+              type="button"
+              id="des-button"
+              class="btn"
+              data-toggle="tooltip"
+              title="Browse"
+            >
               <i class="fas fa-ellipsis-h"></i>
             </button>
           </div>
@@ -62,7 +81,7 @@
           aria-valuemax="100"
         ></div>
       </div>
-      <p id="status" class="text-primary">progress</p>
+      <p id="status" class="text-primary"></p>
 
       <div class="d-flex flex-row justify-content-end">
         <button id="backup-btn" type="button" class="btn btn-primary m-2">

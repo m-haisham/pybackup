@@ -26,8 +26,6 @@ class JsonMemory:
     def load(self):
         """
         load from storage to memory
-
-        :return: None
         """
         try:
             with self.location.open('r') as f:
@@ -38,8 +36,6 @@ class JsonMemory:
     def save(self):
         """
         save current memory to storage
-
-        :return: None
         """
         with self.location.open('w') as f:
             json.dump(self.data, f)
@@ -47,9 +43,10 @@ class JsonMemory:
     def get(self, key, default=None):
         """
         :param key: key used as identifier
-        :return: data corresponding to identifer(key)
+        :param default: value to return is key not found
 
-        :returns: None if key not found
+        :return: data corresponding to identifer(key)
+        :returns: default if key not found
         """
         try:
             value = self.data[key]
@@ -63,7 +60,6 @@ class JsonMemory:
         removes the key from memory
 
         :param key: key to be removed
-        :return: None
         """
         try:
             del self.data[key]
@@ -76,6 +72,14 @@ class JsonMemory:
 
         :param key: key used as identifier
         :param value: data to store
-        :return: None
         """
         self.data[key] = value
+
+    def putall(self, map: dict):
+        """
+        adds all the key-value pairs in the map
+
+        :param map: dictionary map to be stored
+        """
+        for key, value in map.items():
+            self.data[key] = value
