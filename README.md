@@ -10,8 +10,6 @@ with **Eel** as GUI
 - Mutiple folder backup
 - file comparison using hash to determine changes
 
----
-
 ## Console
 
 ```text
@@ -25,8 +23,6 @@ optional arguments:
 ```
 
 `-b` Runs backup on program start and closes on end. **Eel** window is not opened
-
----
 
 ## FAQ
 
